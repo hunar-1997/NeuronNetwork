@@ -1,6 +1,6 @@
 import math
 
-seed = 426
+seed = 7
 def rand(x):
     global seed
     seed *= 17373172882
@@ -32,65 +32,73 @@ def dot(m1, m2):
         m3.append(segm(nrx))
     return m3
 
+def mul(a,b):
+    c=[]
+    for i in range(len(b[0])):
+        c.append(0)
+        for j in range(len(a)):
+            c[i] += a[j]*b[j][i]
+    return c
+def sub(a,b):
+    c=[]
+    for i in range(len(a)):
+        c.append( a[i] - b[i] )
+    return c
+
+def mulD(a,b):
+    c=[]
+    for i in range(len(a)):
+        c.append( a[i] * der(b[i]) )
+    return c
+
+def adj(a,b,c):
+    for i in range(len(b)):
+        for k in range(len(c)):
+            a[i][k] += b[i] * c[k]
+    return a
+
 # Traning data
 data=[[0,0],
       [0,1],
-      [0.1,0.1],
-      [0.1,0.2],
-      [0.2,0.3],
-      [0.5,0.1],
-      [0.3,0.3],
-      [0.8,0.1]]
+      [1,0],
+      [1,1]]
 
 # Desired output
-output=[0,
-        1,
-        0.2,
-        0.3,
-        0.5,
-        0.6,
-        0.6,
-        0.9]
+output=[[0,1],
+        [1,1],
+        [1,0],
+        [0,0]]
 
 # layer(nodes, inputs)
-con1 = shuffle(20,2)
-con2 = shuffle(1,20)
+con1 = shuffle(4,2)
+con2 = shuffle(2,4)
 
 errList=[]
 for i in range(len(data)):
     errList.append(100)
 
 count=0
-for j in range(50000):
+for j in range(100000):
     # Random position for the traning data
     rData = count % len(data)
     count += 1
     
     # Get the values of layer 1 and 2
-    l1 = dot(con1, data[rData])
-    l2 = dot(con2, l1)
+    l1 = dot( con1, data[rData] )
+    l2 = dot( con2, l1 )
     
-    l2_err = output[rData] - l2[0]
-    l2_delta = l2_err * der(l2[0])
+    l2_err = sub( output[rData], l2 )
+    l2_delta = mulD( l2_err, l2 )
     
-    l1_err = []
-    for i in range(len(con2[0])):
-        l1_err.append( l2_delta*con2[0][i] )
+    l1_err = mul( l2_delta, con2 )
+    l1_delta = mulD( l1_err, l1 )
     
-    l1_delta = []
-    for i in range(len(l1_err)):
-        l1_delta.append( l1_err[i]*der(l1[i]) )
-    
-    for i in range(len(con2)):
-        con2[0][i] += l1[i] * l2_delta
-    
-    for i in range(len(con1)):
-        for k in range(len(con1[0])):
-            con1[i][k] += data[rData][k] * l1_delta[i]
+    con2 = adj( con2, l2_delta, l1 )
+    con1 = adj( con1, l1_delta, data[rData] )
     
     if abs(int(l2_err*100)) < errList[rData]:
         errList[rData] = abs(int(l2_err*100))
-    if j%1000==0:
+    if j%10000==0:
         t=0
         for i in errList:
             t += i
@@ -100,7 +108,7 @@ print("result after train:")
 for i in data:
     l1 = dot(con1, i)
     l2 = dot(con2, l1)
-    print("{:.1f}".format(l2[0]))
+    print("{:.0f}".format(l2[0]))
 
 if True:
     print("The brain data:")
