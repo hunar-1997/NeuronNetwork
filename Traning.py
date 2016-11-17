@@ -1,6 +1,6 @@
 import math
 
-seed = 1
+seed = 4
 def rand(x):
     global seed
     seed *= 17373172882
@@ -58,10 +58,10 @@ def adj(a,b,c):
     return a
 
 # Traning data
-data=[[0,0],
-      [0,1],
-      [1,0],
-      [1,1]]
+data=[[0,0,1],
+      [0,1,1],
+      [1,0,1],
+      [1,1,1]]
 
 # Desired output
 output=[[0],
@@ -69,10 +69,16 @@ output=[[0],
         [1],
         [0]]
 
-# layer(nodes, inputs)
-con1 = shuffle(2,2)
-con2 = shuffle(2,2)
-con3 = shuffle(1,2)
+# inputs , (hidden layers,), output
+layers = [ len(data[0]), 4, 2, len(output[0]) ]
+
+ll = []
+for i in range(len(layers)-1):
+    ll.append( shuffle(layers[i+1], layers[i]) )
+
+con1 = ll[0]
+con2 = ll[1]
+con3 = ll[2]
 
 errList=[]
 for i in range(len(data)):
@@ -81,7 +87,7 @@ for i in range(len(data)):
         errList[i].append(100)
 
 count=0
-for j in range(50000):
+for j in range(60000):
     # Random position for the traning data
     rData = count % len(data)
     count += 1
@@ -105,9 +111,9 @@ for j in range(50000):
     con1 = adj( con1, l1_delta, data[rData] )
     
     for i in range(len(output[0])):
-        if abs(int(l2_err[i]*100)) < errList[rData][i]:
-            errList[rData][i] = abs(int(l2_err[i]*100))
-    if j%2000==0:
+        if abs(int(l3_err[i]*100)) < errList[rData][i]:
+            errList[rData][i] = abs(int(l3_err[i]*100))
+    if j%10000==0:
         t=0
         for i in errList:
             for k in i:
@@ -120,9 +126,9 @@ for i in data:
     l2 = dot(con2, l1)
     l3 = dot(con3, l2)
     for j in l3:
-        print("{:.0f}".format(j),end="  ")
+        print("{:.3f}".format(j),end="  ")
     print()
-if True:
+if True and False:
     print("The brain data:")
     print("con1 =", con1)
     print("con2 =", con2)
