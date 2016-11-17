@@ -64,18 +64,20 @@ data=[[0,0],
       [1,1]]
 
 # Desired output
-output=[[0,1],
-        [1,1],
-        [1,0],
-        [0,0]]
+output=[[0],
+        [1],
+        [1],
+        [0]]
 
 # layer(nodes, inputs)
 con1 = shuffle(4,2)
-con2 = shuffle(2,4)
+con2 = shuffle(1,4)
 
 errList=[]
 for i in range(len(data)):
-    errList.append(100)
+    errList.append([])
+    for j in range(len(output[0])):
+        errList[i].append(100)
 
 count=0
 for j in range(100000):
@@ -96,21 +98,24 @@ for j in range(100000):
     con2 = adj( con2, l2_delta, l1 )
     con1 = adj( con1, l1_delta, data[rData] )
     
-    if abs(int(l2_err*100)) < errList[rData]:
-        errList[rData] = abs(int(l2_err*100))
+    for i in range(len(output[0])):
+        if abs(int(l2_err[i]*100)) < errList[rData][i]:
+            errList[rData][i] = abs(int(l2_err[i]*100))
     if j%10000==0:
         t=0
         for i in errList:
-            t += i
-        print("Error:", t/len(data), "%")
+            for k in i:
+                t += k
+        print("Error:", t/(len(errList)*len(errList[0])), "%")
 print("-"*10)
 print("result after train:")
 for i in data:
     l1 = dot(con1, i)
     l2 = dot(con2, l1)
-    print("{:.0f}".format(l2[0]))
-
+    for j in l2:
+        print("{:.0f}".format(l2[0]),end="  ")
+    print()
 if True:
     print("The brain data:")
-    print("con1 =",con1)
+    print("con1 =", con1)
     print("con2 =", con2)
