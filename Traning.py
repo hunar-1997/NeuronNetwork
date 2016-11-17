@@ -64,14 +64,14 @@ data=[[0,0],
       [1,1]]
 
 # Desired output
-output=[[0],
-        [1],
-        [1],
-        [0]]
+output=[[1,1],
+        [1,0],
+        [0,1],
+        [0,0]]
 
 # layer(nodes, inputs)
-con1 = shuffle(4,2)
-con2 = shuffle(1,4)
+con1 = shuffle(3,2)
+con2 = shuffle(2,3)
 
 errList=[]
 for i in range(len(data)):
@@ -113,7 +113,7 @@ for i in data:
     l1 = dot(con1, i)
     l2 = dot(con2, l1)
     for j in l2:
-        print("{:.0f}".format(l2[0]),end="  ")
+        print("{:.0f}".format(j),end="  ")
     print()
 if True:
     print("The brain data:")
