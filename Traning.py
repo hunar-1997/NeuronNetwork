@@ -80,8 +80,10 @@ output=[[0,0],
 # inputs , (hidden layers,), output
 layers = [ len(data[0]), 3, 3, len(output[0]) ]
 
+lenLayer = len(layers)-1
+
 cl = []
-for i in range(len(layers)-1):
+for i in range(lenLayer):
     cl.append( shuffle(layers[i+1], layers[i]) )
 
 con1 = cl[0]
@@ -95,14 +97,14 @@ for i in range(len(data)):
         errList[i].append(100)
 
 count=0
-for j in range(100000):
+for j in range(1):
     # Random position for the traning data
     rData = count % len(data)
     count += 1
     
     # Calculating layer by layer
     ll = []
-    for i in range(len(layers)-1):
+    for i in range(lenLayer):
         if(i==0):
             ll.append( dot(cl[0], data[rData]) )
         else:
@@ -112,14 +114,23 @@ for j in range(100000):
     l2 = ll[1]
     l3 = ll[2]
     
-    l3_err = sub( output[rData], l3 )
-    l3_delta = mulD( l3_err, l3 )
+    erl = [] # error list
+    dll = [] # delta list
+    for i in range(lenLayer):
+        if i==0:
+            erl.append( sub(output[rData], ll[lenLayer-i-1]) )
+        else:
+            erl.append( mul(dll[i-1], cl[lenLayer-i]) )
+        dll.append( mulD(erl[i], ll[lenLayer-i-1]) )
+
+    l3_err = erl[0]
+    l3_delta = dll[0]
     
-    l2_err = mul( l3_delta, con3 )
-    l2_delta = mulD( l2_err, l2 )
+    l2_err = erl[1]
+    l2_delta = dll[1]
     
-    l1_err = mul( l2_delta, con2 )
-    l1_delta = mulD( l1_err, l1 )
+    l1_err = erl[2]
+    l1_delta = dll[2]
     
     con3 = adj( con3, l3_delta, l2 )
     con2 = adj( con2, l2_delta, l1 )
