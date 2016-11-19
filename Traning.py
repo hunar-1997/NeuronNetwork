@@ -86,10 +86,6 @@ cl = []
 for i in range(lenLayer):
     cl.append( shuffle(layers[i+1], layers[i]) )
 
-con1 = cl[0]
-con2 = cl[1]
-con3 = cl[2]
-
 errList=[]
 for i in range(len(data)):
     errList.append([])
@@ -97,7 +93,7 @@ for i in range(len(data)):
         errList[i].append(100)
 
 count=0
-for j in range(1):
+for j in range(100000):
     # Random position for the traning data
     rData = count % len(data)
     count += 1
@@ -110,10 +106,6 @@ for j in range(1):
         else:
             ll.append( dot(cl[i], ll[i-1]) )
     
-    l1 = ll[0]
-    l2 = ll[1]
-    l3 = ll[2]
-    
     erl = [] # error list
     dll = [] # delta list
     for i in range(lenLayer):
@@ -122,23 +114,19 @@ for j in range(1):
         else:
             erl.append( mul(dll[i-1], cl[lenLayer-i]) )
         dll.append( mulD(erl[i], ll[lenLayer-i-1]) )
-
-    l3_err = erl[0]
-    l3_delta = dll[0]
-    
-    l2_err = erl[1]
-    l2_delta = dll[1]
     
     l1_err = erl[2]
     l1_delta = dll[2]
     
-    con3 = adj( con3, l3_delta, l2 )
-    con2 = adj( con2, l2_delta, l1 )
-    con1 = adj( con1, l1_delta, data[rData] )
+    for i in range(lenLayer):
+        if i!=lenLayer-1:
+            cl[lenLayer-i-1] = adj( cl[lenLayer-i-1], dll[i], ll[lenLayer-i-1] )
+        else:
+            cl[lenLayer-i-1] = adj( cl[lenLayer-i-1], dll[i],data[rData] )
     
     for i in range(len(output[0])):
-        if abs(int(l3_err[i]*100)) < errList[rData][i]:
-            errList[rData][i] = abs(int(l3_err[i]*100))
+        if abs(int(erl[0][i]*100)) < errList[rData][i]:
+            errList[rData][i] = abs(int(erl[0][i]*100))
     if j%10000==0:
         t=0
         for i in errList:
@@ -149,15 +137,19 @@ for j in range(1):
 print("-"*10)
 print("result after train:")
 for i in data:
-    l1 = dot(con1, i)
-    l2 = dot(con2, l1)
-    l3 = dot(con3, l2)
-    for j in l3:
+    ll = []
+    for i in range(lenLayer):
+        if(i==0):
+            ll.append( dot(cl[0], data[rData]) )
+        else:
+            ll.append( dot(cl[i], ll[i-1]) )
+    
+    for j in ll[len(ll)-1]:
         print("{:.0f}".format(j),end="  ")
     print()
 if True:
     print("The brain data:")
-    for i in range(len(ll)):
-        print("con"+str(i+1)+" =", ll[i])
+    for i in range(len(cl)):
+        print("con"+str(i+1)+" =", cl[i])
 
 
